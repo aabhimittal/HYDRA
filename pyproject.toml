@@ -1,0 +1,53 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "hydraml"
+version = "0.1.0"
+description = "HYDRA - a poly-orchestration compiler for ML pipelines: one IR, three heads (Kubeflow, Airflow, Prefect)"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+authors = [{ name = "Abhi Mittal" }]
+keywords = ["mlops", "orchestration", "airflow", "prefect", "kubeflow", "pipelines", "compiler"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Compilers",
+    "Topic :: System :: Distributed Computing",
+]
+dependencies = ["pyyaml>=6.0"]
+
+[project.optional-dependencies]
+airflow = ["apache-airflow>=2.7"]
+prefect = ["prefect>=3.0"]
+kubeflow = ["kfp>=2.7"]
+dev = ["pytest>=8.0", "ruff>=0.5"]
+
+[project.scripts]
+hydraml = "hydraml.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/aabhimittal/HYDRA"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/hydraml"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests", "examples"]
+# Generated code (goldens are compiler output, checked in as the codegen spec).
+extend-exclude = ["tests/golden", "build"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B", "SIM"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "."]
+addopts = "-q"
