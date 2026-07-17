@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check .
+      - name: Test
+        run: pytest
+
+  compile-smoke:
+    # Prove the CLI compiles the example for every backend and the local
+    # runner executes it, on a clean checkout.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: pip install -e .
+      - name: Run locally
+        run: hydraml run examples/fraud_detection/pipeline.py --no-cache
+      - name: Validate against all backends
+        run: hydraml validate examples/fraud_detection/pipeline.py
+      - name: Compile all backends
+        run: |
+          hydraml compile examples/fraud_detection/pipeline.py --backend airflow  -o out/
+          hydraml compile examples/fraud_detection/pipeline.py --backend prefect  -o out/
+          hydraml compile examples/fraud_detection/pipeline.py --backend kubeflow -o out/
+          python -m py_compile out/*.py
